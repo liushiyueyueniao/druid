@@ -20,10 +20,6 @@ import java.util.Properties;
 
 import com.alibaba.druid.pool.ExceptionSorter;
 
-/**
- * 单例模式
- *
- */
 public class NullExceptionSorter implements ExceptionSorter {
 
     private final static NullExceptionSorter instance = new NullExceptionSorter();
@@ -31,12 +27,6 @@ public class NullExceptionSorter implements ExceptionSorter {
     public final static NullExceptionSorter getInstance() {
         return instance;
     }
-
-    /**
-     * NullExceptionSorter  不致命
-     * @param e the exception
-     * @return
-     */
 
     @Override
     public boolean isExceptionFatal(SQLException e) {

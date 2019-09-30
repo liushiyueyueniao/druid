@@ -26,13 +26,6 @@ import java.util.Properties;
 
 public class MySqlExceptionSorter implements ExceptionSorter {
 
-    /**
-     *
-     * 根据不同的驱动 错误代码  判断致命与否
-     *
-     * @param e the exception
-     * @return
-     */
     @Override
     public boolean isExceptionFatal(SQLException e) {
         if (e instanceof SQLRecoverableException) {

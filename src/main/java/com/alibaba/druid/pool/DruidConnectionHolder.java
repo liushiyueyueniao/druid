@@ -39,23 +39,13 @@ import com.alibaba.druid.util.Utils;
 
 /**
  * @author wenshao [szujobs@hotmail.com]
- *
- * 每一个DruidConnectionHolder都会有一个PreparedStatementPool 存放要执行的数据库操作   其实就是对 Connection 和 Connection要执行的
- * PreparedStatement 的缓存
- *
  */
 public final class DruidConnectionHolder {
     private final static Log                      LOG                      = LogFactory.getLog(DruidConnectionHolder.class);
     public static boolean                         holdabilityUnsupported   = false;
 
-    /**
-     * 这个数据库连接是哪个数据源的
-     */
     protected final DruidAbstractDataSource       dataSource;
     protected final long                          connectionId;
-    /**
-     * 数据库的链接
-     */
     protected final Connection                    conn;
     protected final List<ConnectionEventListener> connectionEventListeners = new CopyOnWriteArrayList<ConnectionEventListener>();
     protected final List<StatementEventListener>  statementEventListeners  = new CopyOnWriteArrayList<StatementEventListener>();
@@ -66,9 +56,6 @@ public final class DruidConnectionHolder {
     private long                                  keepAliveCheckCount      = 0;
     private long                                  lastNotEmptyWaitNanos;
     private final long                            createNanoSpan;
-    /**
-     * 要执行的数据库惭怍
-     */
     protected PreparedStatementPool               statementPool;
     protected final List<Statement>               statementTrace           = new ArrayList<Statement>(2);
     protected final boolean                       defaultReadOnly;
