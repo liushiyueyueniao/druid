@@ -67,10 +67,11 @@ import com.alibaba.druid.util.*;
  * @author wenshao [szujobs@hotmail.com]
  * @author ljw [ljw2083@alibaba-inc.com]
  */
-public abstract class DruidAbstractDataSource extends WrapperAdapter implements DruidAbstractDataSourceMBean, DataSource, DataSourceProxy, Serializable {
+public abstract class DruidAbstractDataSource extends WrapperAdapter implements DruidAbstractDataSourceMBean, DataSource, DataSourceProxy, Serializable
+{
     private static final long                          serialVersionUID                          = 1L;
     private final static Log                           LOG                                       = LogFactory.getLog(DruidAbstractDataSource.class);
-
+    // 默认的参数开始
     public final static int                            DEFAULT_INITIAL_SIZE                      = 0;
     public final static int                            DEFAULT_MAX_ACTIVE_SIZE                   = 8;
     public final static int                            DEFAULT_MAX_IDLE                          = 8;
@@ -87,14 +88,14 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
     public static final long                           DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS    = 1000L * 60L * 30L;
     public static final long                           DEFAULT_MAX_EVICTABLE_IDLE_TIME_MILLIS    = 1000L * 60L * 60L * 7;
     public static final long                           DEFAULT_PHY_TIMEOUT_MILLIS                = -1;
-
+    // 默认的事务参数
     protected volatile boolean                         defaultAutoCommit                         = true;
     protected volatile Boolean                         defaultReadOnly;
     protected volatile Integer                         defaultTransactionIsolation;
     protected volatile String                          defaultCatalog                            = null;
-
+    //默认参数结束
     protected String                                   name;
-
+    //数据库访问参数
     protected volatile String                          username;
     protected volatile String                          password;
     protected volatile String                          jdbcUrl;
@@ -121,19 +122,19 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
     protected volatile boolean                         sharePreparedStatements                   = false;
     protected volatile int                             maxPoolPreparedStatementPerConnectionSize = 10;
 
-    protected volatile boolean                         inited                                    = false;
-    protected volatile boolean                         initExceptionThrow                        = true;
+    protected volatile boolean                         inited                                    = false; //是否已经初始化
+    protected volatile boolean                         initExceptionThrow                        = true;  //初始化时是否发出异常
 
-    protected PrintWriter                              logWriter                                 = new PrintWriter(System.out);
+    protected PrintWriter                              logWriter                                 = new PrintWriter(System.out);// 控制台打印日志
 
-    protected List<Filter>                             filters                                   = new CopyOnWriteArrayList<Filter>();
-    private boolean                                    clearFiltersEnable                        = true;
-    protected volatile ExceptionSorter                 exceptionSorter                           = null;
+    protected List<Filter>                             filters                                   = new CopyOnWriteArrayList<Filter>(); // 过滤器容器
+    private boolean                                    clearFiltersEnable                        = true;  //
+    protected volatile ExceptionSorter                 exceptionSorter                           = null;  // 处理驱动内部的异常  判断是否是致命
 
-    protected Driver                                   driver;
+    protected Driver                                   driver;  // 驱动
 
-    protected volatile int                             queryTimeout;
-    protected volatile int                             transactionQueryTimeout;
+    protected volatile int                             queryTimeout;  //查询超时
+    protected volatile int                             transactionQueryTimeout; // 事务查询超时
 
     protected long                                     createTimespan;
 
@@ -160,7 +161,7 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
     protected volatile long                            timeBetweenConnectErrorMillis             = DEFAULT_TIME_BETWEEN_CONNECT_ERROR_MILLIS;
 
     protected volatile ValidConnectionChecker          validConnectionChecker                    = null;
-
+                                                                // 活跃的线程数
     protected final Map<DruidPooledConnection, Object> activeConnections                         = new IdentityHashMap<DruidPooledConnection, Object>();
     protected final static Object                      PRESENT                                   = new Object();
 
@@ -218,6 +219,7 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
     final static AtomicLongFieldUpdater<DruidAbstractDataSource> executeBatchCountUpdater = AtomicLongFieldUpdater.newUpdater(DruidAbstractDataSource.class, "executeBatchCount");
     final static AtomicLongFieldUpdater<DruidAbstractDataSource> executeCountUpdater = AtomicLongFieldUpdater.newUpdater(DruidAbstractDataSource.class, "executeCount");
 
+    //最近的一个错误
     protected volatile Throwable                       createError;
     protected volatile Throwable                       lastError;
     protected volatile long                            lastErrorTimeMillis;
@@ -228,11 +230,13 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
     protected boolean                                  isOracle                                  = false;
     protected boolean                                  isMySql                                   = false;
     protected boolean                                  useOracleImplicitCache                    = true;
-
+    /**
+     * 锁
+     */
     protected ReentrantLock                            lock;
     protected Condition                                notEmpty;
     protected Condition                                empty;
-
+                                                        //活跃的链接锁
     protected ReentrantLock                            activeConnectionLock                      = new ReentrantLock();
 
     protected volatile int                             createErrorCount                          = 0;
@@ -1566,6 +1570,7 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
 
     public Connection createPhysicalConnection(String url, Properties info) throws SQLException {
         Connection conn;
+        //是否配置 java SQL的 接口获取链接
         if (getProxyFilters().size() == 0) {
             conn = getDriver().connect(url, info);
         } else {
@@ -1577,6 +1582,12 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
         return conn;
     }
 
+    /**
+     *     createPhysicalConnection() 调用 createPhysicalConnection(url, physicalConnectProperties);有参数的
+     *     直接通过的java.sql下的接口和实现驱动 获取物理链接
+     * @return
+     * @throws SQLException
+     */
     public PhysicalConnectionInfo createPhysicalConnection() throws SQLException {
         String url = this.getUrl();
         Properties connectProperties = getConnectProperties();
@@ -1617,9 +1628,10 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
         if (password != null && password.length() != 0) {
             physicalConnectProperties.put("password", password);
         }
-
+        // 物理链接
         Connection conn = null;
 
+        // 开始的纳秒数
         long connectStartNanos = System.nanoTime();
         long connectedNanos, initedNanos, validatedNanos;
 
@@ -1633,20 +1645,24 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
         createStartNanosUpdater.set(this, connectStartNanos);
         creatingCountUpdater.incrementAndGet(this);
         try {
+            //创建物理链接
             conn = createPhysicalConnection(url, physicalConnectProperties);
             connectedNanos = System.nanoTime();
 
             if (conn == null) {
                 throw new SQLException("connect error, url " + url + ", driverClass " + this.driverClass);
             }
-
+            //初始化链接
             initPhysicalConnection(conn, variables, globalVariables);
+            // 创建结束的纳秒数
             initedNanos = System.nanoTime();
-
+            //校验物理链接
             validateConnection(conn);
+            //校验结束的纳秒数
             validatedNanos = System.nanoTime();
-
+            // TODO 设置是否失败继续
             setFailContinuous(false);
+            //设置创建错误   无错误  就 null
             setCreateError(null);
         } catch (SQLException ex) {
             setCreateError(ex);
@@ -2053,6 +2069,9 @@ public abstract class DruidAbstractDataSource extends WrapperAdapter implements 
         this.initExceptionThrow = initExceptionThrow;
     }
 
+    /**
+     * 物理链接
+     */
     public static class PhysicalConnectionInfo {
         private Connection connection;
         private long connectStartNanos;

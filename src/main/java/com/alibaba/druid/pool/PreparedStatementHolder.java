@@ -21,6 +21,8 @@ import java.sql.PreparedStatement;
 
 /**
  * @author wenshao [szujobs@hotmail.com]
+ *
+ * 封装PreparedStatement
  */
 public final class PreparedStatementHolder {
 

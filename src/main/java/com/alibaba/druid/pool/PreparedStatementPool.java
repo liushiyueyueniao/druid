@@ -35,7 +35,7 @@ import com.alibaba.druid.util.OracleUtils;
 public class PreparedStatementPool {
 
     private final static Log              LOG = LogFactory.getLog(PreparedStatementPool.class);
-
+    //缓存要执行的 PreparedStatement
     private final LRUCache                map;
     private final DruidAbstractDataSource dataSource;
 
@@ -52,6 +52,14 @@ public class PreparedStatementPool {
         M1, M2, M3, M4, M5, M6, Precall_1, Precall_2, Precall_3
     }
 
+    /**
+     *
+     *    更具Key 获取 链接
+     *
+     * @param key
+     * @return
+     * @throws SQLException
+     */
     public PreparedStatementHolder get(PreparedStatementKey key) throws SQLException {
         PreparedStatementHolder holder = map.get(key);
 
@@ -72,6 +80,11 @@ public class PreparedStatementPool {
         return holder;
     }
 
+    /**
+     *   从map的缓存中删除对应的Key  删除对应的PreparedStatementHolder
+     * @param stmtHolder
+     * @throws SQLException
+     */
     public void remove(PreparedStatementHolder stmtHolder) throws SQLException {
         if (stmtHolder == null) {
             return;
@@ -183,6 +196,9 @@ public class PreparedStatementPool {
         return this.map.size();
     }
 
+    /**
+     * PreparedStatementPool 的 实现
+     */
     public class LRUCache extends LinkedHashMap<PreparedStatementKey, PreparedStatementHolder> {
 
         private static final long serialVersionUID = 1L;

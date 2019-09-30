@@ -20,12 +20,16 @@ import java.util.Properties;
 
 /**
  * An interface to allow for exception evaluation.
+ *
+ * 允许异常评估的接口
  */
 public interface ExceptionSorter {
 
     /**
      * Returns true or false whether or not the exception is fatal.
-     * 
+     *
+     * 返回 true 或 false，更具异常是否致命
+     *
      * @param e the exception
      * @return true or false if the exception is fatal.
      */
